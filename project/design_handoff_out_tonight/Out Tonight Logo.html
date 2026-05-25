@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Out Tonight — Wordmark Explorations</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Space Grotesk', sans-serif; }
+  :root {
+    --ink: #0d0d0d;
+    --cream: #f0ece4;
+    --cream-dim: rgba(240, 236, 228, 0.55);
+    --cream-faint: rgba(240, 236, 228, 0.28);
+    --amber: #c9803a;
+    --serif: 'Playfair Display', 'Cormorant Garamond', serif;
+    --cormorant: 'Cormorant Garamond', serif;
+    --sans: 'Space Grotesk', sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  .ink { background: var(--ink); width: 100%; height: 100%; position: relative; }
+  .ink::before {
+    /* subtle warmth — barely-there cream haze, almost imperceptible */
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 60%, rgba(201,128,58,0.04), transparent 65%);
+    pointer-events: none;
+  }
+  .stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .stack { display: flex; flex-direction: column; align-items: center; }
+  .row { display: flex; align-items: center; }
+  .cream { color: var(--cream); }
+  .amber { color: var(--amber); }
+  .dim { color: var(--cream-dim); }
+  .faint { color: var(--cream-faint); }
+  .serif { font-family: var(--serif); }
+  .cormorant { font-family: var(--cormorant); }
+  .sans { font-family: var(--sans); }
+  .mono { font-family: var(--mono); }
+  .italic { font-style: italic; }
+  .uppercase { text-transform: uppercase; }
+  .tracked { letter-spacing: 0.32em; }
+  .tracked-sm { letter-spacing: 0.18em; }
+  .tracked-lg { letter-spacing: 0.42em; }
+  .rule { background: var(--cream-faint); }
+
+  /* Optical adjustment for italic Playfair: trim leading whitespace from the slant */
+  .word { line-height: 0.95; }
+
+  /* corner crops on focus card */
+  .crop::before, .crop::after,
+  .crop > .tl, .crop > .tr {
+    content: ''; position: absolute; width: 10px; height: 10px;
+    border-color: var(--cream-faint); border-style: solid; border-width: 0;
+  }
+  .crop::before { top: 12px; left: 12px; border-top-width: 1px; border-left-width: 1px; }
+  .crop::after  { bottom: 12px; right: 12px; border-bottom-width: 1px; border-right-width: 1px; }
+  .crop > .tr   { top: 12px; right: 12px; border-top-width: 1px; border-right-width: 1px; }
+  .crop > .bl   { bottom: 12px; left: 12px; border-bottom-width: 1px; border-left-width: 1px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="marks.jsx?v=4"></script>
+<script type="text/babel" src="lockups.jsx?v=4"></script>
+<script type="text/babel">
+  const { useEffect, useState } = React;
+
+  function App() {
+    // Wait for fonts to actually load so the canvas never paints a fallback flash
+    const [ready, setReady] = useState(false);
+    useEffect(() => {
+      document.fonts.ready.then(() => setReady(true));
+      // hard fallback in case fonts.ready hangs
+      const t = setTimeout(() => setReady(true), 1500);
+      return () => clearTimeout(t);
+    }, []);
+
+    if (!ready) return <div style={{height:'100vh',background:'#f0eee9'}} />;
+
+    return (
+      <DesignCanvas>
+        <DCSection id="horizontal" title="Horizontal lockups" subtitle="Mark on the left, wordmark to its right">
+          <DCArtboard id="h1" label="H1 · Full marque — mark, rule, mono caption" width={720} height={320}>
+            <H1 />
+          </DCArtboard>
+          <DCArtboard id="h2" label="H2 · Clean — mark + wordmark only" width={720} height={320}>
+            <H2 />
+          </DCArtboard>
+          <DCArtboard id="h3" label="H3 · No mark — pure typographic" width={720} height={320}>
+            <H3 />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="stacked" title="Stacked lockups" subtitle="Mark sits above wordmark — for narrower spaces">
+          <DCArtboard id="s1" label="S1 · Mark, wordmark, caption" width={480} height={540}>
+            <S1 />
+          </DCArtboard>
+          <DCArtboard id="s2" label="S2 · Tighter — no caption" width={480} height={540}>
+            <S2 />
+          </DCArtboard>
+          <DCArtboard id="s3" label="S3 · Mark in hairline framing" width={480} height={540}>
+            <S3 />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="icon" title="App icon · mark in isolation" subtitle="Outline mark in three framings">
+          <DCArtboard id="i1" label="I1 · Plain on dark" width={360} height={360}>
+            <I1 />
+          </DCArtboard>
+          <DCArtboard id="i2" label="I2 · Inside hairline medallion" width={360} height={360}>
+            <I2 />
+          </DCArtboard>
+          <DCArtboard id="i3" label="I3 · iOS squircle" width={360} height={360}>
+            <I3 />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="context" title="In context" subtitle="The mark + wordmark applied in real surfaces">
+          <DCArtboard id="c1" label="C1 · App splash" width={300} height={620}>
+            <C1 />
+          </DCArtboard>
+          <DCArtboard id="c2" label="C2 · Editorial header" width={720} height={420}>
+            <C2 />
+          </DCArtboard>
+          <DCArtboard id="c3" label="C3 · Icon on home screen" width={360} height={360}>
+            <C3 />
+          </DCArtboard>
+        </DCSection>
+      </DesignCanvas>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
