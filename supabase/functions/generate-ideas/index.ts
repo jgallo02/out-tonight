@@ -58,6 +58,7 @@ Each object must match this schema exactly:
   "why_tonight": "1 sentence on why this is perfect for this specific date and time.",
   "logistics": "Address or neighborhood. Booking notes. Best arrival time.",
   "venue_name": "Exact venue name for lookup, or null if not a fixed venue",
+  "website_url": "Official website URL if known (e.g. https://lucali.com), or null",
   "image_search_query": "4–6 word atmospheric Unsplash search query"
 }`
 }
