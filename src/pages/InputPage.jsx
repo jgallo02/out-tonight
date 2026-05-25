@@ -71,6 +71,33 @@ export default function InputPage() {
   const [groupSize, setGroupSize] = useState(2)
   const [vibes, setVibes] = useState([])
   const [budget, setBudget] = useState('$$')
+  const [locating, setLocating] = useState(false)
+
+  async function useCurrentLocation() {
+    if (!navigator.geolocation || locating) return
+    setLocating(true)
+    try {
+      const pos = await new Promise((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000 })
+      )
+      const { latitude, longitude } = pos.coords
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+        { headers: { 'Accept-Language': 'en' } }
+      )
+      const data = await res.json()
+      const addr = data.address ?? {}
+      const cityName = addr.city || addr.town || addr.village || addr.county || ''
+      const region = addr.country_code === 'us'
+        ? (addr.state ? `, ${addr.state.replace(/^(\w{2,})$/, s => s.length === 2 ? s : s)}` : '')
+        : (addr.country ? `, ${addr.country}` : '')
+      if (cityName) setCity(`${cityName}${region}`)
+    } catch {
+      // permission denied or timeout — silently ignore
+    } finally {
+      setLocating(false)
+    }
+  }
 
   function toggleVibe(v) {
     setVibes(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v])
@@ -146,6 +173,30 @@ export default function InputPage() {
               fontFamily: '"DM Sans", sans-serif', fontSize: 15, color: C.ink,
             }}
           />
+          <button
+            onClick={useCurrentLocation}
+            disabled={locating}
+            title="Use current location"
+            style={{
+              background: 'none', border: 'none', padding: '0 2px',
+              cursor: locating ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center', flexShrink: 0,
+            }}
+          >
+            {locating ? (
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ animation: 'spin 1s linear infinite' }}>
+                <circle cx="7" cy="7" r="5.5" stroke={C.red} strokeWidth="1.5" strokeDasharray="20 15" strokeLinecap="round"/>
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="3" stroke={C.inkDim} strokeWidth="1.3"/>
+                <line x1="8" y1="1" x2="8" y2="4" stroke={C.inkDim} strokeWidth="1.3" strokeLinecap="round"/>
+                <line x1="8" y1="12" x2="8" y2="15" stroke={C.inkDim} strokeWidth="1.3" strokeLinecap="round"/>
+                <line x1="1" y1="8" x2="4" y2="8" stroke={C.inkDim} strokeWidth="1.3" strokeLinecap="round"/>
+                <line x1="12" y1="8" x2="15" y2="8" stroke={C.inkDim} strokeWidth="1.3" strokeLinecap="round"/>
+              </svg>
+            )}
+          </button>
         </Field>
 
         {/* Date + Time */}
