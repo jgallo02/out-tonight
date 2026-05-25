@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useMatches, useRemoveMatch } from '../hooks/useMatches'
 import PageShell from '../components/layout/PageShell'
 import { resolveImage } from '../lib/images'
+import { shareIdea } from '../lib/share'
 
 // ── Palette (Sapphire & Ruby) ─────────────────────────────────────────────
 const C = {
@@ -64,6 +65,7 @@ function MatchRow({ idea, index, onRemove }) {
   const [expanded, setExpanded] = useState(false)
   const [removing, setRemoving] = useState(false)
   const [imageUrl, setImageUrl] = useState(null)
+  const [shareLabel, setShareLabel] = useState('Share')
   const gradient = CATEGORY_GRADIENTS[idea.category] || CATEGORY_GRADIENTS['Culture']
 
   useEffect(() => {
@@ -226,20 +228,40 @@ function MatchRow({ idea, index, onRemove }) {
             </span>
           )}
 
-          {/* Learn more link */}
-          <a
-            href={idea.website_url || `https://www.google.com/search?q=${encodeURIComponent(idea.venue_name || idea.title)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 5,
-              fontFamily: '"DM Mono", monospace', fontSize: 9,
-              letterSpacing: '0.22em', textTransform: 'uppercase',
-              color: C.red, textDecoration: 'none',
-            }}
-          >
-            Learn more →
-          </a>
+          {/* Learn more + Share row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
+            <a
+              href={idea.website_url || `https://www.google.com/search?q=${encodeURIComponent(idea.venue_name || idea.title)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                fontFamily: '"DM Mono", monospace', fontSize: 9,
+                letterSpacing: '0.22em', textTransform: 'uppercase',
+                color: C.red, textDecoration: 'none',
+              }}
+            >
+              Learn more →
+            </a>
+            <button
+              onClick={async () => {
+                const result = await shareIdea(idea)
+                if (result === 'copied') {
+                  setShareLabel('Copied!')
+                  setTimeout(() => setShareLabel('Share'), 2000)
+                }
+              }}
+              style={{
+                background: 'transparent', border: `1px solid ${C.inkHair}`,
+                borderRadius: 999, padding: '5px 12px',
+                fontFamily: '"DM Mono", monospace', fontSize: 9,
+                letterSpacing: '0.22em', textTransform: 'uppercase',
+                color: C.inkDim, cursor: 'pointer',
+              }}
+            >
+              {shareLabel} ↑
+            </button>
+          </div>
         </div>
       )}
     </div>
