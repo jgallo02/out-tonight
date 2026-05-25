@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import PageShell from '../components/layout/PageShell'
+import { useUserPreferences } from '../hooks/useUserPreferences'
 
 // ── Palette (Sapphire & Ruby) ─────────────────────────────────────────────
 const C = {
@@ -68,6 +69,36 @@ function useProfileStats() {
   })
 }
 
+function PrefSection({ label, children }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <span style={{
+        fontFamily: '"DM Mono", monospace', fontSize: 8.5,
+        letterSpacing: '0.24em', textTransform: 'uppercase', color: C.inkDim,
+      }}>{label}</span>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function PrefChip({ label, active, onToggle }) {
+  return (
+    <button
+      onClick={onToggle}
+      style={{
+        padding: '7px 13px', borderRadius: 999, cursor: 'pointer',
+        border: active ? '1px solid transparent' : `1px solid ${C.inkHair}`,
+        background: active ? C.red : 'transparent',
+        color: active ? C.ink : C.inkDim,
+        fontFamily: '"DM Sans", sans-serif',
+        fontSize: 11.5, fontWeight: active ? 600 : 400,
+      }}
+    >{label}</button>
+  )
+}
+
 function Avatar({ name, avatarUrl, size = 72 }) {
   const [imgError, setImgError] = useState(false)
   const initials = (name ?? '')
@@ -128,6 +159,7 @@ export default function ProfilePage() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const { data: stats } = useProfileStats()
+  const { preferences, saving, updatePref, toggleArrayPref } = useUserPreferences()
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user))
@@ -238,6 +270,112 @@ export default function ProfilePage() {
                 }}>{tag}</span>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Divider */}
+        <div style={{ margin: '0 22px 24px', height: 1, background: C.inkHair }} />
+
+        {/* Preferences */}
+        {preferences && (
+          <div style={{ padding: '0 22px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{
+                fontFamily: '"DM Mono", monospace', fontSize: 9,
+                letterSpacing: '0.26em', textTransform: 'uppercase', color: C.inkFaint,
+              }}>Preferences</span>
+              {saving && (
+                <span style={{
+                  fontFamily: '"DM Mono", monospace', fontSize: 8,
+                  letterSpacing: '0.22em', textTransform: 'uppercase', color: C.wine,
+                }}>Saving…</span>
+              )}
+            </div>
+
+            {/* Dietary restrictions */}
+            <PrefSection label="Dietary restrictions">
+              {['Vegetarian','Vegan','Gluten-free','Halal','Kosher','No shellfish','Nut-free'].map(opt => (
+                <PrefChip
+                  key={opt} label={opt}
+                  active={preferences.dietary.includes(opt)}
+                  onToggle={() => toggleArrayPref('dietary', opt)}
+                />
+              ))}
+            </PrefSection>
+
+            {/* Travel radius */}
+            <PrefSection label="Travel radius">
+              {[
+                { value: 'walkable',  label: 'Walkable' },
+                { value: 'nearby',    label: 'Nearby' },
+                { value: 'citywide',  label: 'Citywide' },
+                { value: 'anywhere',  label: 'Anywhere' },
+              ].map(({ value, label }) => (
+                <PrefChip
+                  key={value} label={label}
+                  active={preferences.travel_radius === value}
+                  onToggle={() => updatePref('travel_radius', value)}
+                />
+              ))}
+            </PrefSection>
+
+            {/* Transportation */}
+            <PrefSection label="Getting around">
+              {[
+                { value: 'any',      label: 'Any' },
+                { value: 'walking',  label: 'Walking' },
+                { value: 'transit',  label: 'Transit' },
+                { value: 'driving',  label: 'Driving' },
+              ].map(({ value, label }) => (
+                <PrefChip
+                  key={value} label={label}
+                  active={preferences.transportation === value}
+                  onToggle={() => updatePref('transportation', value)}
+                />
+              ))}
+            </PrefSection>
+
+            {/* Accessibility */}
+            <PrefSection label="Accessibility needs">
+              {['Wheelchair accessible','Step-free','Elevator required','Seated only'].map(opt => (
+                <PrefChip
+                  key={opt} label={opt}
+                  active={preferences.accessibility.includes(opt)}
+                  onToggle={() => toggleArrayPref('accessibility', opt)}
+                />
+              ))}
+            </PrefSection>
+
+            {/* Activity level */}
+            <PrefSection label="Activity level">
+              {[
+                { value: 'any',      label: 'Any' },
+                { value: 'low',      label: 'Low-key' },
+                { value: 'moderate', label: 'Moderate' },
+                { value: 'active',   label: 'Active' },
+              ].map(({ value, label }) => (
+                <PrefChip
+                  key={value} label={label}
+                  active={preferences.activity_level === value}
+                  onToggle={() => updatePref('activity_level', value)}
+                />
+              ))}
+            </PrefSection>
+
+            {/* Noise preference */}
+            <PrefSection label="Atmosphere">
+              {[
+                { value: 'any',    label: 'Any' },
+                { value: 'quiet',  label: 'Quiet & intimate' },
+                { value: 'lively', label: 'Lively & buzzy' },
+              ].map(({ value, label }) => (
+                <PrefChip
+                  key={value} label={label}
+                  active={preferences.noise_preference === value}
+                  onToggle={() => updatePref('noise_preference', value)}
+                />
+              ))}
+            </PrefSection>
           </div>
         )}
 

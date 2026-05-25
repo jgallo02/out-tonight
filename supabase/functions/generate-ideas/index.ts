@@ -24,12 +24,37 @@ function buildPrompt(params: {
   liked_tags: string[]
   passed_tags: string[]
   exclude?: string[]
+  preferences?: {
+    dietary?: string[]
+    travel_radius?: string
+    transportation?: string
+    accessibility?: string[]
+    activity_level?: string
+    noise_preference?: string
+  }
 }) {
-  const { city, date, time, group_size, vibes, budget, liked_tags, passed_tags, exclude } = params
+  const { city, date, time, group_size, vibes, budget, liked_tags, passed_tags, exclude, preferences } = params
   const vibeStr = vibes.length ? vibes.join(', ') : 'open to anything'
   const likedStr = liked_tags.length ? liked_tags.join(', ') : 'none yet'
   const passedStr = passed_tags.length ? passed_tags.join(', ') : 'none'
   const excludeStr = exclude?.length ? exclude.join(', ') : null
+
+  const prefLines: string[] = []
+  if (preferences?.dietary?.length) prefLines.push(`DIETARY RESTRICTIONS: ${preferences.dietary.join(', ')} — only suggest food options that accommodate this`)
+  if (preferences?.travel_radius && preferences.travel_radius !== 'citywide') {
+    const radiusMap: Record<string, string> = { walkable: 'walkable only (under 1 mile)', nearby: 'nearby (under 5 miles)', anywhere: 'anywhere, distance is no concern' }
+    prefLines.push(`TRAVEL RADIUS: ${radiusMap[preferences.travel_radius] ?? preferences.travel_radius}`)
+  }
+  if (preferences?.transportation && preferences.transportation !== 'any') prefLines.push(`TRANSPORTATION: ${preferences.transportation} — prioritize options accessible by this mode`)
+  if (preferences?.accessibility?.length) prefLines.push(`ACCESSIBILITY: ${preferences.accessibility.join(', ')} — only suggest venues that meet these requirements`)
+  if (preferences?.activity_level && preferences.activity_level !== 'any') {
+    const actMap: Record<string, string> = { low: 'low-key & seated', moderate: 'moderate activity', active: 'active & on your feet' }
+    prefLines.push(`ACTIVITY LEVEL: ${actMap[preferences.activity_level] ?? preferences.activity_level}`)
+  }
+  if (preferences?.noise_preference && preferences.noise_preference !== 'any') {
+    const noiseMap: Record<string, string> = { quiet: 'quiet & intimate atmosphere', lively: 'lively & buzzy atmosphere' }
+    prefLines.push(`ATMOSPHERE: ${noiseMap[preferences.noise_preference] ?? preferences.noise_preference}`)
+  }
 
   return `You are a local date-night expert for ${city}. Today is ${date}, the outing is ${time}.
 
@@ -37,7 +62,7 @@ GROUP SIZE: ${group_size} people
 VIBE: ${vibeStr}
 BUDGET: ${budget}  ($ = under $30/person · $$ = $30–60 · $$$ = $60–100 · $$$$ = $100+)
 THEMES TO LEAN INTO: ${likedStr}
-THEMES TO AVOID: ${passedStr}${excludeStr ? `\nALREADY SHOWN — do not repeat these: ${excludeStr}` : ''}
+THEMES TO AVOID: ${passedStr}${prefLines.length ? '\n' + prefLines.join('\n') : ''}${excludeStr ? `\nALREADY SHOWN — do not repeat these: ${excludeStr}` : ''}
 
 Generate exactly 10 unique date-night ideas using your knowledge of real venues and experiences in ${city}. Be specific — use real venue names, neighborhoods, and details.
 
@@ -88,6 +113,7 @@ serve(async (req) => {
     liked_tags: string[]
     passed_tags: string[]
     exclude?: string[]
+    preferences?: Record<string, unknown>
   }
   try {
     body = await req.json()

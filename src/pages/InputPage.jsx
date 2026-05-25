@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSwipeHistory } from '../hooks/useSwipeHistory'
 import { useIdeaGeneration } from '../hooks/useIdeaGeneration'
 import TopBarAvatar from '../components/ui/TopBarAvatar'
+import { supabase } from '../lib/supabase'
+import { DEFAULT_PREFERENCES } from '../hooks/useUserPreferences'
 
 // ── Palette (Sapphire & Ruby) ──────────────────────────────────────────────
 const C = {
@@ -65,6 +67,7 @@ export default function InputPage() {
   const { data: history } = useSwipeHistory()
   const { mutateAsync: generateIdeas, isPending, error: genError } = useIdeaGeneration()
 
+  const [userPrefs, setUserPrefs] = useState(DEFAULT_PREFERENCES)
   const [city, setCity] = useState('')
   const [date, setDate] = useState(todayISO())
   const [time, setTime] = useState('Evening')
@@ -72,6 +75,12 @@ export default function InputPage() {
   const [vibes, setVibes] = useState([])
   const [budget, setBudget] = useState('$$')
   const [locating, setLocating] = useState(false)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUserPrefs({ ...DEFAULT_PREFERENCES, ...(user?.user_metadata?.preferences ?? {}) })
+    })
+  }, [])
 
   async function useCurrentLocation() {
     if (!navigator.geolocation || locating) return
@@ -106,7 +115,7 @@ export default function InputPage() {
   async function handleSubmit() {
     if (!city.trim() || isPending) return
     try {
-      const ideas = await generateIdeas({
+      const payload = {
         city: city.trim(),
         date,
         time,
@@ -115,16 +124,10 @@ export default function InputPage() {
         budget,
         liked_tags: history?.liked_tags ?? [],
         passed_tags: history?.passed_tags ?? [],
-      })
-      navigate('/deck', { state: {
-        ideas,
-        params: {
-          city: city.trim(), date, time,
-          group_size: groupSize, vibes, budget,
-          liked_tags: history?.liked_tags ?? [],
-          passed_tags: history?.passed_tags ?? [],
-        },
-      } })
+        preferences: userPrefs,
+      }
+      const ideas = await generateIdeas(payload)
+      navigate('/deck', { state: { ideas, params: payload } })
     } catch {
       // error shown via genError
     }
