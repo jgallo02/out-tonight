@@ -227,21 +227,19 @@ function IdeaRow({ idea, index, saved, onToggleSave, city }) {
           )}
 
           {/* Learn more link */}
-          {(idea.website_url || idea.venue_name) && (
-            <a
-              href={idea.website_url || `https://www.google.com/search?q=${encodeURIComponent(`${idea.venue_name} ${city}`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 5,
-                fontFamily: '"DM Mono", monospace', fontSize: 9,
-                letterSpacing: '0.22em', textTransform: 'uppercase',
-                color: C.red, textDecoration: 'none',
-              }}
-            >
-              Learn more →
-            </a>
-          )}
+          <a
+            href={idea.website_url || `https://www.google.com/search?q=${encodeURIComponent(`${idea.venue_name || idea.title} ${city}`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+              fontFamily: '"DM Mono", monospace', fontSize: 9,
+              letterSpacing: '0.22em', textTransform: 'uppercase',
+              color: C.red, textDecoration: 'none',
+            }}
+          >
+            Learn more →
+          </a>
         </div>
       )}
     </div>
