@@ -158,6 +158,38 @@ export default function InputPage() {
           Where are we <span style={{ fontStyle: 'italic', color: C.wine }}>going?</span>
         </h1>
 
+        {/* First-run hint — only shown when user has no swipe history */}
+        {history && history.liked_tags.length === 0 && history.passed_tags.length === 0 && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '10px 14px', borderRadius: 10,
+            background: 'rgba(239,229,210,0.05)',
+            border: `1px solid ${C.inkHair}`,
+          }}>
+            {[
+              { n: '01', label: 'Set your vibe' },
+              { n: '02', label: 'Get 10 ideas' },
+              { n: '03', label: 'Save the best' },
+            ].map(({ n, label }, i, arr) => (
+              <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flex: 1 }}>
+                  <span style={{
+                    fontFamily: '"DM Mono", monospace', fontSize: 8,
+                    letterSpacing: '0.26em', color: C.wine,
+                  }}>{n}</span>
+                  <span style={{
+                    fontFamily: '"DM Sans", sans-serif', fontSize: 10,
+                    color: C.inkDim, textAlign: 'center', lineHeight: 1.3,
+                  }}>{label}</span>
+                </div>
+                {i < arr.length - 1 && (
+                  <span style={{ color: C.inkHair, fontSize: 10, flexShrink: 0 }}>›</span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* City */}
         <Field label="City">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
