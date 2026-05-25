@@ -26,8 +26,8 @@ function buildPrompt(params: {
   exclude?: string[]
   preferences?: {
     dietary?: string[]
-    travel_radius?: string
-    transportation?: string
+    travel_radius?: string[]
+    transportation?: string[]
     accessibility?: string[]
     activity_level?: string
     noise_preference?: string
@@ -41,11 +41,12 @@ function buildPrompt(params: {
 
   const prefLines: string[] = []
   if (preferences?.dietary?.length) prefLines.push(`DIETARY RESTRICTIONS: ${preferences.dietary.join(', ')} — only suggest food options that accommodate this`)
-  if (preferences?.travel_radius && preferences.travel_radius !== 'citywide') {
-    const radiusMap: Record<string, string> = { walkable: 'walkable only (under 1 mile)', nearby: 'nearby (under 5 miles)', anywhere: 'anywhere, distance is no concern' }
-    prefLines.push(`TRAVEL RADIUS: ${radiusMap[preferences.travel_radius] ?? preferences.travel_radius}`)
+  if (preferences?.travel_radius?.length) {
+    const radiusMap: Record<string, string> = { walkable: 'walkable (under 1 mile)', nearby: 'nearby (under 5 miles)', citywide: 'anywhere in the city', anywhere: 'anywhere, distance is no concern' }
+    const radiusStr = preferences.travel_radius.map(r => radiusMap[r] ?? r).join(' or ')
+    prefLines.push(`TRAVEL RADIUS: ${radiusStr}`)
   }
-  if (preferences?.transportation && preferences.transportation !== 'any') prefLines.push(`TRANSPORTATION: ${preferences.transportation} — prioritize options accessible by this mode`)
+  if (preferences?.transportation?.length) prefLines.push(`TRANSPORTATION: ${preferences.transportation.join(' or ')} — prioritize options accessible by these modes`)
   if (preferences?.accessibility?.length) prefLines.push(`ACCESSIBILITY: ${preferences.accessibility.join(', ')} — only suggest venues that meet these requirements`)
   if (preferences?.activity_level && preferences.activity_level !== 'any') {
     const actMap: Record<string, string> = { low: 'low-key & seated', moderate: 'moderate activity', active: 'active & on your feet' }
@@ -113,7 +114,14 @@ serve(async (req) => {
     liked_tags: string[]
     passed_tags: string[]
     exclude?: string[]
-    preferences?: Record<string, unknown>
+    preferences?: {
+      dietary?: string[]
+      travel_radius?: string[]
+      transportation?: string[]
+      accessibility?: string[]
+      activity_level?: string
+      noise_preference?: string
+    }
   }
   try {
     body = await req.json()

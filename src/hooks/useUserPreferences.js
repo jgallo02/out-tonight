@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
 export const DEFAULT_PREFERENCES = {
-  dietary:         [],          // multi: 'Vegetarian', 'Vegan', 'Gluten-free', 'Halal', 'Kosher', 'No shellfish', 'Nut-free'
-  travel_radius:   'citywide',  // 'walkable' | 'nearby' | 'citywide' | 'anywhere'
-  transportation:  'any',       // 'any' | 'walking' | 'transit' | 'driving'
-  accessibility:   [],          // multi: 'Wheelchair accessible', 'Step-free', 'Elevator required', 'Seated only'
+  dietary:         [],  // multi: 'Vegetarian', 'Vegan', 'Gluten-free', 'Halal', 'Kosher', 'No shellfish', 'Nut-free'
+  travel_radius:   [],  // multi: 'walkable' | 'nearby' | 'citywide' | 'anywhere'
+  transportation:  [],  // multi: 'walking' | 'transit' | 'driving'
+  accessibility:   [],  // multi: 'Wheelchair accessible', 'Step-free', 'Elevator required', 'Seated only'
   activity_level:  'any',       // 'any' | 'low' | 'moderate' | 'active'
   noise_preference:'any',       // 'any' | 'quiet' | 'lively'
 }
@@ -16,10 +16,16 @@ export function useUserPreferences() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      setPreferences({
-        ...DEFAULT_PREFERENCES,
-        ...(user?.user_metadata?.preferences ?? {}),
-      })
+      const saved = user?.user_metadata?.preferences ?? {}
+      const merged = { ...DEFAULT_PREFERENCES, ...saved }
+      // Coerce legacy single-value strings to arrays
+      if (typeof merged.travel_radius === 'string') {
+        merged.travel_radius = merged.travel_radius && merged.travel_radius !== 'citywide' ? [merged.travel_radius] : []
+      }
+      if (typeof merged.transportation === 'string') {
+        merged.transportation = merged.transportation && merged.transportation !== 'any' ? [merged.transportation] : []
+      }
+      setPreferences(merged)
     })
   }, [])
 

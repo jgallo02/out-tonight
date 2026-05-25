@@ -313,8 +313,8 @@ export default function ProfilePage() {
               ].map(({ value, label }) => (
                 <PrefChip
                   key={value} label={label}
-                  active={preferences.travel_radius === value}
-                  onToggle={() => updatePref('travel_radius', value)}
+                  active={(preferences.travel_radius ?? []).includes(value)}
+                  onToggle={() => toggleArrayPref('travel_radius', value)}
                 />
               ))}
             </PrefSection>
@@ -322,15 +322,14 @@ export default function ProfilePage() {
             {/* Transportation */}
             <PrefSection label="Getting around">
               {[
-                { value: 'any',      label: 'Any' },
                 { value: 'walking',  label: 'Walking' },
                 { value: 'transit',  label: 'Transit' },
                 { value: 'driving',  label: 'Driving' },
               ].map(({ value, label }) => (
                 <PrefChip
                   key={value} label={label}
-                  active={preferences.transportation === value}
-                  onToggle={() => updatePref('transportation', value)}
+                  active={(preferences.transportation ?? []).includes(value)}
+                  onToggle={() => toggleArrayPref('transportation', value)}
                 />
               ))}
             </PrefSection>
